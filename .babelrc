@@ -1,19 +1,8 @@
 {
   "env": {
     "test": {
-      "presets": [
-        [
-          "env",
-          {
-            "targets": {
-              "node": "current"
-            }
-          }
-        ]
-      ],
-      "plugins": [
-        "./index"
-      ]
+      "presets": ["@babel/env"],
+      "plugins": ["./index"]
     }
   },
   "sourceMaps": "inline"

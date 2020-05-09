@@ -38,3 +38,12 @@ test('render4', () => {
 
   expect(dom.innerHTML).toBe('<span>text1</span>');
 });
+test('render5', () => {
+  var a = {
+    render: function () {
+      return <span>asd</span>;
+    },
+  };
+  var b = a.render();
+  expect(b).toBe('<span>text1</span>');
+});

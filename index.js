@@ -1,6 +1,12 @@
+'use strict';
 var esutils = require('esutils');
 var groupProps = require('./lib/group-props');
+var addDefault = require('@babel/helper-module-imports').addDefault;
+function _interopDefault(ex) {
+  return ex && typeof ex === 'object' && 'default' in ex ? ex['default'] : ex;
+}
 
+const syntaxJsx = _interopDefault(require('@babel/plugin-syntax-jsx'));
 var isInsideJsxExpression = function (t, path) {
   if (!path.parentPath) {
     return false;
@@ -15,27 +21,13 @@ module.exports = function (babel) {
   var t = babel.types;
 
   return {
-    inherits: require('babel-plugin-syntax-jsx'),
+    inherits: syntaxJsx,
     visitor: {
       JSXNamespacedName(path) {
         throw path.buildCodeFrameError(
           'Namespaced tags/attributes are not supported. JSX is not XML.\n' +
             'For attributes like xlink:href, use xlinkHref instead.',
         );
-      },
-      JSXElement: {
-        exit(path, file) {
-          // turn tag into createElement call
-          var callExpr = buildElementCall(path.get('openingElement'), file);
-          if (path.node.children.length) {
-            // add children array as 3rd arg
-            callExpr.arguments.push(t.arrayExpression(path.node.children));
-            if (callExpr.arguments.length >= 3) {
-              callExpr._prettyCall = true;
-            }
-          }
-          path.replaceWith(t.inherits(callExpr, path.node));
-        },
       },
       Program(path, file) {
         path.traverse({
@@ -66,11 +58,7 @@ module.exports = function (babel) {
               params[0].remove();
             }
             // inject h otherwise
-            var _h = file.addImport(
-              'babel-plugin-transform-jsx-vue3/injectCode',
-              'dynamicRender',
-              '_h_render',
-            );
+            var _h = addDefault(path, 'babel-plugin-transform-jsx-vue3/injectCode/dynamicRender');
             path.traverse({
               JSXElement: {
                 exit(path2, file2) {
@@ -79,21 +67,14 @@ module.exports = function (babel) {
                   if (path2.node.children.length) {
                     // add children array as 3rd arg
                     callExpr.arguments.push(t.arrayExpression(path2.node.children));
-                    if (callExpr.arguments.length >= 3) {
-                      callExpr._prettyCall = true;
-                    }
+                    // if (callExpr.arguments.length >= 3) {
+                    //   callExpr._prettyCall = true;
+                    // }
                   }
                   path2.replaceWith(t.inherits(callExpr, path2.node));
                 },
               },
             });
-            // var a = path.get('body');
-            // if (a) {
-            //   a.unshiftContainer(
-            //     'body',
-            //     t.variableDeclaration('const', [t.variableDeclarator(t.identifier('h'), h)]),
-            //   );
-            // }
           },
           JSXOpeningElement(path) {
             const tag = path.get('name').node.name;
@@ -208,11 +189,7 @@ module.exports = function (babel) {
       return attribs;
     }
     // add prop merging helper
-    var helper = file.addImport(
-      'babel-plugin-transform-jsx-vue3/injectCode',
-      'mergeJSXProps',
-      '_mergeJSXProps',
-    );
+    var helper = addDefault(path, 'babel-plugin-transform-jsx-vue3/injectCode/mergeJSXProps');
     // spread it
     attribs = t.callExpression(helper, [t.arrayExpression(objs)]);
     return attribs;

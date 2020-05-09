@@ -1,4 +1,3 @@
-
 const transformIgnorePatterns = [
   '/dist/',
   'node_modules/[^/]+?/(?!(es|node_modules)/)', // Ignore modules without es dir
@@ -13,9 +12,9 @@ module.exports = {
   },
   moduleNameMapper: {
     '^vue$': 'vue/dist/vue.global.js',
+    'babel-plugin-transform-jsx-vue3/injectCode': './injectCode/index.js',
   },
   testRegex: '.*\\.test\\.js$',
-  moduleNameMapper: {
-  },
+  moduleNameMapper: {},
   transformIgnorePatterns,
 };
