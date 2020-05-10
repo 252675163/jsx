@@ -4,15 +4,23 @@
   "description": "transform jsx in vue3",
   "main": "index.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "dev": "webpack --config ./demo/webpack.config.js -w"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vueComponent/jsx.git"
   },
-  "keywords": [],
+  "keywords": [
+    "vue",
+    "babel",
+    "jsx"
+  ],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
+  "engines": {
+    "node": ">=6.9.0"
+  },
   "bugs": {
     "url": "https://github.com/vueComponent/jsx/issues"
   },
@@ -23,9 +31,13 @@
     "@babel/core": "^7.8.4",
     "@babel/plugin-syntax-jsx": "^7.8.3",
     "@babel/preset-env": "^7.8.4",
+    "@babel/preset-typescript": "^7.9.0",
     "babel-jest": "^26.0.1",
+    "babel-loader": "^8.1.0",
     "esutils": "^2.0.3",
     "jest": "^26.0.1",
-    "vue": "^3.0.0-beta.10"
+    "typescript": "^3.8.3",
+    "vue": "^3.0.0-beta.10",
+    "webpack": "^4.43.0"
   }
 }

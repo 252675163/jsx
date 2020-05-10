@@ -1,9 +1,0 @@
-{
-  "env": {
-    "test": {
-      "presets": ["@babel/env"],
-      "plugins": ["./index"]
-    }
-  },
-  "sourceMaps": "inline"
-}

@@ -12,7 +12,8 @@ module.exports = {
   },
   moduleNameMapper: {
     '^vue$': 'vue/dist/vue.global.js',
-    'babel-plugin-transform-jsx-vue3/injectCode': './injectCode/index.js',
+    'babel-plugin-transform-jsx-vue3/injectCode/dynamicRender': './injectCode/dynamicRender',
+    'babel-plugin-transform-jsx-vue3/injectCode/mergeJSXProps': './injectCode/mergeJSXProps',
   },
   testRegex: '.*\\.test\\.js$',
   moduleNameMapper: {},

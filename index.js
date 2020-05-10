@@ -29,9 +29,9 @@ module.exports = function (babel) {
             'For attributes like xlink:href, use xlinkHref instead.',
         );
       },
-      Program(path, file) {
+      Program(path) {
         path.traverse({
-          'ObjectMethod|ClassMethod|ArrowFunctionExpression'(path) {
+          'ObjectMethod|ClassMethod|ArrowFunctionExpression|FunctionDeclaration'(path) {
             const params = path.get('params');
 
             // do nothing if there is no JSX inside
@@ -57,19 +57,19 @@ module.exports = function (babel) {
             if (params.length && params[0].node.name === 'h') {
               params[0].remove();
             }
+            debugger;
             // inject h otherwise
-            var _h = addDefault(path, 'babel-plugin-transform-jsx-vue3/injectCode/dynamicRender');
+            var _h = addDefault(path, 'babel-plugin-transform-jsx-vue3/injectCode/dynamicRender', {
+              nameHint: '__dynamicRender',
+            });
             path.traverse({
               JSXElement: {
-                exit(path2, file2) {
+                exit(path2) {
                   // turn tag into createElement call
-                  var callExpr = buildElementCall(path2.get('openingElement'), file2, _h);
+                  var callExpr = buildElementCall(path2.get('openingElement'), _h);
                   if (path2.node.children.length) {
                     // add children array as 3rd arg
                     callExpr.arguments.push(t.arrayExpression(path2.node.children));
-                    // if (callExpr.arguments.length >= 3) {
-                    //   callExpr._prettyCall = true;
-                    // }
                   }
                   path2.replaceWith(t.inherits(callExpr, path2.node));
                 },
@@ -106,7 +106,7 @@ module.exports = function (babel) {
     },
   };
 
-  function buildElementCall(path, file, _h) {
+  function buildElementCall(path, _h) {
     path.parent.children = t.react.buildChildren(path.parent);
     var tagExpr = convertJSXIdentifier(path.node.name, path.node);
     var args = [];
@@ -126,7 +126,7 @@ module.exports = function (babel) {
 
     var attribs = path.node.attributes;
     if (attribs.length) {
-      attribs = buildOpeningElementAttributes(attribs, file);
+      attribs = buildOpeningElementAttributes(attribs, path);
       args.push(attribs);
     }
     return t.callExpression(_h, args);
@@ -157,7 +157,7 @@ module.exports = function (babel) {
    * all prior attributes to an array for later processing.
    */
 
-  function buildOpeningElementAttributes(attribs, file) {
+  function buildOpeningElementAttributes(attribs, path) {
     var _props = [];
     var objs = [];
 
@@ -189,7 +189,9 @@ module.exports = function (babel) {
       return attribs;
     }
     // add prop merging helper
-    var helper = addDefault(path, 'babel-plugin-transform-jsx-vue3/injectCode/mergeJSXProps');
+    var helper = addDefault(path, 'babel-plugin-transform-jsx-vue3/injectCode/mergeJSXProps', {
+      nameHint: '_mergeJSXProps',
+    });
     // spread it
     attribs = t.callExpression(helper, [t.arrayExpression(objs)]);
     return attribs;

@@ -17,13 +17,15 @@ module.exports = function dynamicRender(type, propsOrChildren) {
     let directives = propsOrChildren['directives'];
     if (directives && directives.length > 0) {
       let directivesArr = directives.map((item) => {
-        return [
-          item.dir ? item.dir : resolveDirective(item.name),
-          item.value,
-          item.arg,
-          item.modifiers,
-        ];
+        if (typeof item.dir === 'string') {
+          item.name = item.dir;
+        }
+        if (typeof item.name === 'string') {
+          item.dir = resolveDirective(item.name);
+        }
+        return [item.dir, item.value, item.arg, item.modifiers];
       });
+      delete propsOrChildren['directives'];
       return withDirectives(h.call(this, ...arguments), directivesArr);
     }
   }
