@@ -17,6 +17,22 @@ module.exports = function dynamicRender(type, propsOrChildren) {
     let directives = propsOrChildren['directives'];
     if (directives && directives.length > 0) {
       let directivesArr = directives.map((item) => {
+        // handle situation: <a v-cust={{value,modifiers,arg}} />
+        if (
+          item._internal_directive_flag &&
+          item.value &&
+          item.value &&
+          !item.modifiers &&
+          !item.arg
+        ) {
+          const directiveOption = item.value;
+          item = {
+            value: directiveOption.value,
+            modifiers: directiveOption.modifiers,
+            arg: directiveOption.arg,
+            name: item.name,
+          };
+        }
         if (typeof item.dir === 'string') {
           item.name = item.dir;
         }

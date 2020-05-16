@@ -2,8 +2,12 @@
 var esutils = require('esutils');
 var groupProps = require('./lib/group-props');
 var addDefault = require('@babel/helper-module-imports').addDefault;
+var addNamed = require('@babel/helper-module-imports').addNamed;
 function _interopDefault(ex) {
   return ex && typeof ex === 'object' && 'default' in ex ? ex['default'] : ex;
+}
+function isEmptyJSXText(node) {
+  return node && node.type === 'JSXText' && !node.value.trim();
 }
 
 const syntaxJsx = _interopDefault(require('@babel/plugin-syntax-jsx'));
@@ -53,23 +57,25 @@ module.exports = function (babel) {
             if (isInsideJsxExpression(t, path)) {
               return;
             }
-            // remove h if there is (h) param
-            if (params.length && params[0].node.name === 'h') {
-              params[0].remove();
-            }
-            debugger;
+
             // inject h otherwise
-            var _h = addDefault(path, 'babel-plugin-transform-jsx-vue3/injectCode/dynamicRender', {
-              nameHint: '__dynamicRender',
-            });
+            var _h = addDefault(path, 'babel-plugin-transform-jsx-vue3/injectCode/dynamicRender');
             path.traverse({
-              JSXElement: {
+              'JSXElement|JSXFragment': {
                 exit(path2) {
-                  // turn tag into createElement call
-                  var callExpr = buildElementCall(path2.get('openingElement'), _h);
-                  if (path2.node.children.length) {
+                  var callExpr;
+                  if (path2.type === 'JSXFragment') {
+                    callExpr = t.callExpression(_h, [addNamed(path2, 'Fragment', 'vue')]);
+                  } else {
+                    // turn tag into createElement call
+                    callExpr = buildElementCall(path2.get('openingElement'), _h);
+                  }
+                  const withoutEmptynodes = path2.node.children.filter(
+                    (node) => !isEmptyJSXText(node),
+                  );
+                  if (withoutEmptynodes.length) {
                     // add children array as 3rd arg
-                    callExpr.arguments.push(t.arrayExpression(path2.node.children));
+                    callExpr.arguments.push(t.arrayExpression(withoutEmptynodes));
                   }
                   path2.replaceWith(t.inherits(callExpr, path2.node));
                 },
@@ -93,12 +99,6 @@ module.exports = function (babel) {
               if (!attribute.node) {
                 return;
               }
-
-              // const attr = attribute.node.name
-
-              // if (mustUseProp(tag, type, attr) && t.isJSXExpressionContainer(attributePath.node.value)) {
-              //   attribute.replaceWith(t.JSXIdentifier(`domProps-${attr}`))
-              // }
             });
           },
         });
@@ -184,16 +184,16 @@ module.exports = function (babel) {
       return o._isSpread ? o : groupProps(o.properties, t);
     });
     if (objs.length === 1 && !objs[0]._isSpread) {
-      // only one object and it is not spread
       attribs = objs[0];
       return attribs;
     }
+
     // add prop merging helper
-    var helper = addDefault(path, 'babel-plugin-transform-jsx-vue3/injectCode/mergeJSXProps', {
-      nameHint: '_mergeJSXProps',
-    });
+    var helper = addNamed(path, 'mergeProps', 'vue');
+    // mergeProps function does not support one argument
+    if (objs.length === 1) objs = [t.objectExpression([])].concat(objs);
     // spread it
-    attribs = t.callExpression(helper, [t.arrayExpression(objs)]);
+    attribs = t.callExpression(helper, [...objs]);
     return attribs;
   }
 
